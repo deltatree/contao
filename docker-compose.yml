@@ -1,0 +1,43 @@
+services:
+  contao:
+    build: .
+    container_name: contao_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - "8080:80"
+    environment:
+      APACHE_DOCUMENT_ROOT: /var/www/html/web
+      COMPOSER_MEMORY_LIMIT: "-1"
+    volumes:
+      - ./app:/var/www/html:cached
+    # Allow running composer install/update from host via docker exec
+    working_dir: /var/www/html
+
+  db:
+    image: mariadb:10.11
+    container_name: contao_db
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: contao_root
+      MYSQL_DATABASE: contao
+      MYSQL_USER: contao
+      MYSQL_PASSWORD: contao
+    command: >-
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-file-per-table=1
+      --skip-host-cache
+      --skip-name-resolve
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-pcontao_root"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - db_data:/var/lib/mysql
+
+volumes:
+  db_data:

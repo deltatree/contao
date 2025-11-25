@@ -1,0 +1,5 @@
+/app/*
+!/app/.gitkeep
+/vendor/
+/.env
+/.DS_Store
