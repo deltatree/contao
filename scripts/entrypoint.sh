@@ -5,6 +5,7 @@ APP_DIR=${APP_DIR:-/var/www/html}
 PLACEHOLDER=${APP_PLACEHOLDER:-$APP_DIR/.gitkeep}
 CONTAO_CONSOLE="$APP_DIR/vendor/bin/contao-console"
 INSTALLER=${CONTAO_INSTALLER_BIN:-/usr/local/bin/install-contao}
+PIN_SCRIPT=${CONTAO_PIN_BIN:-/usr/local/bin/pin-contao-version}
 
 has_app_content() {
   find "$APP_DIR" -mindepth 1 \
@@ -34,6 +35,17 @@ if [[ ! -x "$CONTAO_CONSOLE" ]]; then
   if ! has_app_content && [[ -x "$INSTALLER" ]]; then
     echo "[entrypoint] No Contao installation detected – running install-contao"
     "$INSTALLER"
+    if [[ -x "$PIN_SCRIPT" ]]; then
+      echo "[entrypoint] Pinning Contao dependencies via $PIN_SCRIPT"
+      (
+        cd "$APP_DIR"
+        "$PIN_SCRIPT"
+      )
+      echo "[entrypoint] Pinning completed"
+    else
+      echo "[entrypoint] Pin script $PIN_SCRIPT not found or not executable" >&2
+      exit 1
+    fi
   else
     echo "[entrypoint] No Contao console found at $CONTAO_CONSOLE (skipping contao:install)"
   fi

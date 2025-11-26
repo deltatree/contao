@@ -60,7 +60,8 @@ COPY docker/php/php.ini /usr/local/etc/php/conf.d/contao.ini
 # Contao helper scripts
 COPY scripts/install-contao.sh /usr/local/bin/install-contao
 COPY scripts/entrypoint.sh /usr/local/bin/contao-entrypoint
-RUN chmod +x /usr/local/bin/install-contao /usr/local/bin/contao-entrypoint
+COPY scripts/pin2SpecificVersion.sh /usr/local/bin/pin-contao-version
+RUN chmod +x /usr/local/bin/install-contao /usr/local/bin/contao-entrypoint /usr/local/bin/pin-contao-version
 
 WORKDIR /var/www/html
 
