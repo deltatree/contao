@@ -13,8 +13,8 @@ This setup provides a reproducible Contao-ready PHP environment that follows the
 ## Prerequisites
 
 - Docker Engine + Docker Compose Plugin (or Docker Desktop) on your host machine.
-- `app/` folder must remain empty before running `composer create-project` (committed `.gitkeep` keeps the directory in git).
-- Beim Containerstart entfernt der Entry-Point die `.gitkeep`, führt – falls noch keine Installation vorhanden ist – automatisch `install-contao` aus und ruft danach `contao:install` auf. Beim Stoppen wird `.gitkeep` nur dann zurückgeschrieben, wenn der Ordner leer geblieben ist.
+- `app/` folder must remain empty before the first start (committed `.gitkeep` keeps the directory in git).
+- Beim Containerstart entfernt der Entry-Point die `.gitkeep`, führt – falls noch keine Installation vorhanden ist – automatisch `install-contao` aus, pinnt alle Contao-Pakete auf 4.9.18 (inkl. `contao/manager-plugin:2.11.3`) und ruft danach `contao:install` auf. Beim Stoppen wird `.gitkeep` nur dann zurückgeschrieben, wenn der Ordner leer geblieben ist.
 
 ## Quick Start
 
@@ -22,11 +22,11 @@ This setup provides a reproducible Contao-ready PHP environment that follows the
    ```sh
    docker compose up -d --build
    ```
-2. **Install Contao 4.9 LTS into `app/`** (default pin baked into the container):
+2. **Initial Contao installation** – happens automatically on the first `docker compose up` as long as `app/` is empty. The entrypoint runs `install-contao`, pins every `contao/*` bundle (plus `contao/manager-plugin:2.11.3`) to `4.9.18`, executes `composer update 'contao/*' -W --no-scripts`, and finally calls `vendor/bin/contao-console contao:install` to wire up directories. If you need to rerun the installer manually, you can still call:
    ```sh
    docker compose exec contao install-contao
    ```
-   The helper command installs `contao/managed-edition:4.9.*` by default (passing `--no-audit` and `--no-security-blocking` so Composer does not halt on known advisories of the legacy release). Override via `CONTAO_VERSION`, e.g. `CONTAO_VERSION="5.6.*" docker compose exec contao install-contao`. When switching to Contao 5.x you can update the `Dockerfile` base image to PHP 8.x and drop those flags.
+   Override the target version via `CONTAO_VERSION`, e.g. `CONTAO_VERSION="5.6.*" docker compose exec contao install-contao`. When switching to Contao 5.x update the `Dockerfile` to PHP 8.x and drop the legacy Composer flags.
 
    > ℹ️ Beim Container-Start führt das neue Entry-Point-Skript automatisch `vendor/bin/contao-console contao:install` aus, sobald die Contao-Konsole im `app/`-Verzeichnis vorhanden ist. So werden notwendige Verzeichnisse direkt angelegt.
    After the dependencies are installed, Contao’s public entry point will be in `public/` (or `web/` for older releases). The Apache virtual host already points to `public/`.
@@ -73,6 +73,21 @@ docker compose exec contao vendor/bin/contao-console cache:clear
 # Stop and remove the stack
 docker compose down -v
 ```
+
+## Resetting a Backend Password
+
+If the Contao login UI cannot be used (e.g., after a fresh install), you can reset a backend user password from the host:
+
+```sh
+docker compose exec contao php vendor/bin/contao-console contao:user:password <username> \
+   --password "NeuesPasswort123" [--require-change]
+```
+
+`--require-change` erzwingt eine Passwortänderung beim nächsten Login. The hash is stored in `tl_user`; no additional DB steps are necessary.
+
+## Publishing the Docker Image via GitHub Actions
+
+The workflow `.github/workflows/publish.yml` builds the image and pushes it to `ghcr.io/<owner>/<repo>` whenever a tag matching `v00.00.00` (SemVer style with leading `v`) is pushed. Two tags are published per release: the full `vX.Y.Z` and the `X.Y` shorthand. Ensure GitHub Packages is enabled for the repository so the built image is available to your deployments.
 
 ## Next Steps
 
