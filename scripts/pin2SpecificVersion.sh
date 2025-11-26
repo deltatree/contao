@@ -2,6 +2,7 @@
 set -e
 
 TARGET=4.9.18
+MANAGER_PLUGIN_VERSION=2.11.3
 
 # Security-Blocker für unsichere Versionen deaktivieren
 composer config audit.block-insecure false
@@ -18,6 +19,9 @@ for pkg in $PKGS; do
     echo "Überspringe $pkg (Library)"
   fi
 done
+
+echo "Pinne contao/manager-plugin auf $MANAGER_PLUGIN_VERSION"
+composer require "contao/manager-plugin:${MANAGER_PLUGIN_VERSION}" --no-update
 
 # Dependencies neu auflösen, aber ohne Composer-Skripte
 composer update 'contao/*' -W --no-scripts
