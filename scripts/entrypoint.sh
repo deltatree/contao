@@ -35,6 +35,18 @@ if [[ ! -x "$CONTAO_CONSOLE" ]]; then
   if ! has_app_content && [[ -x "$INSTALLER" ]]; then
     echo "[entrypoint] No Contao installation detected – running install-contao"
     "$INSTALLER"
+    
+    # Add additional packages after initial installation
+    echo "[entrypoint] Adding additional Contao packages"
+    (
+      cd "$APP_DIR"
+      composer require --no-update \
+        "christianbarkowsky/contao-tiny-compress-images:^1.0" \
+        "terminal42/notification_center:^1.5"
+      composer update
+    )
+    echo "[entrypoint] Additional packages installed"
+    
     if [[ -x "$PIN_SCRIPT" ]]; then
       echo "[entrypoint] Pinning Contao dependencies via $PIN_SCRIPT"
       (
