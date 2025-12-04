@@ -1,4 +1,5 @@
 /app/*
+!/app/.env
 !/app/.gitkeep
 /vendor/
 /.env
