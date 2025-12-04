@@ -46,6 +46,7 @@ RUN set -eux; \
     docker-php-ext-enable imagick; \
     a2enmod rewrite headers; \
     mkdir -p "$APACHE_DOCUMENT_ROOT"; \
+    echo "ServerName localhost" >> /etc/apache2/apache2.conf; \
     sed -ri 's!DocumentRoot /var/www/html!DocumentRoot ${APACHE_DOCUMENT_ROOT}!g' /etc/apache2/sites-available/000-default.conf; \
     sed -ri 's!<Directory /var/www/html>!<Directory ${APACHE_DOCUMENT_ROOT}>!g' /etc/apache2/apache2.conf /etc/apache2/sites-available/000-default.conf; \
     apt-get clean; \

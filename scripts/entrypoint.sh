@@ -51,18 +51,17 @@ if [[ ! -x "$CONTAO_CONSOLE" ]]; then
   fi
 fi
 
+# Fix permissions for entire app directory - must be writable by www-data
+echo "[entrypoint] Fixing permissions on $APP_DIR"
+chown -R www-data:www-data "$APP_DIR"
+chmod -R 775 "$APP_DIR"
+
 # Recalculate path after potential install
 if [[ -x "$CONTAO_CONSOLE" ]]; then
   echo "[entrypoint] Running initial Contao setup via contao:install"
   php "$CONTAO_CONSOLE" contao:install
 else
   echo "[entrypoint] Still no Contao console present – continuing without running contao:install"
-fi
-if [[ -x "$CONTAO_CONSOLE" ]]; then
-  echo "[entrypoint] Running initial Contao setup via contao:install"
-  php "$CONTAO_CONSOLE" contao:install
-else
-  echo "[entrypoint] No Contao console found at $CONTAO_CONSOLE (skipping contao:install)"
 fi
 
 echo "[entrypoint] Starting main process: $*"

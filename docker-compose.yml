@@ -11,6 +11,7 @@ services:
     environment:
       APACHE_DOCUMENT_ROOT: /var/www/html/web
       COMPOSER_MEMORY_LIMIT: "-1"
+      DATABASE_URL: "mysql://contao:contao@db:3306/contao?serverVersion=mariadb-10.11.0"
     volumes:
       - ./app:/var/www/html:cached
     # Allow running composer install/update from host via docker exec
