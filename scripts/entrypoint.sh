@@ -68,10 +68,17 @@ echo "[entrypoint] Fixing permissions on $APP_DIR"
 chown -R www-data:www-data "$APP_DIR"
 chmod -R 775 "$APP_DIR"
 
-# Clear cache to avoid stale container issues
-if [[ -d "$APP_DIR/var/cache" ]]; then
-  echo "[entrypoint] Clearing cache"
-  rm -rf "$APP_DIR/var/cache/"*
+# Clear cache completely to avoid stale container issues
+echo "[entrypoint] Clearing cache completely"
+rm -rf "$APP_DIR/var/cache"
+mkdir -p "$APP_DIR/var/cache"
+chown www-data:www-data "$APP_DIR/var/cache"
+chmod 775 "$APP_DIR/var/cache"
+
+# Warm up the cache before running contao:install
+if [[ -x "$CONTAO_CONSOLE" ]]; then
+  echo "[entrypoint] Warming up cache"
+  php "$CONTAO_CONSOLE" cache:warmup --env=prod || true
 fi
 
 # Recalculate path after potential install
