@@ -109,5 +109,10 @@ else
   echo "[entrypoint] Still no Contao console present – continuing without running contao:install"
 fi
 
+# Fix permissions again after all cache/install operations
+echo "[entrypoint] Final permission fix on $APP_DIR/var"
+chown -R www-data:www-data "$APP_DIR/var"
+chmod -R 775 "$APP_DIR/var"
+
 echo "[entrypoint] Starting main process: $*"
 exec "$@"
