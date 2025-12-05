@@ -52,8 +52,9 @@ RUN set -eux; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
-# Provide Composer for installing Contao via composer/manager
-COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
+# Provide Composer 2.2.24 for compatibility with older Contao Manager Bundle
+# Newer Composer versions (2.9+) have breaking changes in Process::__construct()
+COPY --from=composer:2.2.24 /usr/bin/composer /usr/local/bin/composer
 
 # Apply php.ini overrides
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/contao.ini

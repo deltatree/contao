@@ -76,10 +76,16 @@ mkdir -p "$APP_DIR/var/cache"
 chown www-data:www-data "$APP_DIR/var/cache"
 chmod 775 "$APP_DIR/var/cache"
 
-# Downgrade Composer to 2.2.24 for compatibility with older Contao Manager Bundle
-# Newer Composer versions (2.9+) have breaking changes in Process::__construct()
-echo "[entrypoint] Downgrading Composer to 2.2.24 for Contao compatibility"
-composer self-update 2.2.24 || echo "[entrypoint] WARNING: Composer downgrade failed"
+# Ensure .env.local has TRUSTED_PROXIES for reverse proxy support (Ingress/Load Balancer)
+if [[ -f "$APP_DIR/.env.local" ]]; then
+  if ! grep -q "TRUSTED_PROXIES" "$APP_DIR/.env.local"; then
+    echo "[entrypoint] Adding TRUSTED_PROXIES to .env.local"
+    echo "TRUSTED_PROXIES=REMOTE_ADDR" >> "$APP_DIR/.env.local"
+  fi
+else
+  echo "[entrypoint] Creating .env.local with TRUSTED_PROXIES"
+  echo "TRUSTED_PROXIES=REMOTE_ADDR" > "$APP_DIR/.env.local"
+fi
 
 # Run composer install to ensure dependencies and autoloader are up to date
 echo "[entrypoint] Running composer install"
@@ -87,13 +93,6 @@ echo "[entrypoint] Running composer install"
   cd "$APP_DIR"
   composer install --no-dev --optimize-autoloader || echo "[entrypoint] WARNING: composer install failed"
 )
-
-# Debug: Show environment and files
-echo "[entrypoint] DEBUG: Listing var directory"
-ls -la "$APP_DIR/var/" || true
-echo "[entrypoint] DEBUG: Checking for .env files"
-ls -la "$APP_DIR"/.env* 2>/dev/null || true
-echo "[entrypoint] DEBUG: DATABASE_URL=$DATABASE_URL"
 
 # Warm up the cache before running contao:install
 if [[ -x "$CONTAO_CONSOLE" ]]; then
