@@ -76,6 +76,18 @@ mkdir -p "$APP_DIR/var/cache"
 chown www-data:www-data "$APP_DIR/var/cache"
 chmod 775 "$APP_DIR/var/cache"
 
+# Downgrade Composer to 2.2.24 for compatibility with older Contao Manager Bundle
+# Newer Composer versions (2.9+) have breaking changes in Process::__construct()
+echo "[entrypoint] Downgrading Composer to 2.2.24 for Contao compatibility"
+composer self-update 2.2.24 || echo "[entrypoint] WARNING: Composer downgrade failed"
+
+# Run composer install to ensure dependencies and autoloader are up to date
+echo "[entrypoint] Running composer install"
+(
+  cd "$APP_DIR"
+  composer install --no-dev --optimize-autoloader || echo "[entrypoint] WARNING: composer install failed"
+)
+
 # Debug: Show environment and files
 echo "[entrypoint] DEBUG: Listing var directory"
 ls -la "$APP_DIR/var/" || true
