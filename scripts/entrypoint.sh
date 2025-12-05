@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-set -euo pipefail
+# Don't use -e so the container keeps running even if setup fails
+set -uo pipefail
 
 APP_DIR=${APP_DIR:-/var/www/html}
 PLACEHOLDER=${APP_PLACEHOLDER:-$APP_DIR/.gitkeep}
@@ -75,16 +76,23 @@ mkdir -p "$APP_DIR/var/cache"
 chown www-data:www-data "$APP_DIR/var/cache"
 chmod 775 "$APP_DIR/var/cache"
 
+# Debug: Show environment and files
+echo "[entrypoint] DEBUG: Listing var directory"
+ls -la "$APP_DIR/var/" || true
+echo "[entrypoint] DEBUG: Checking for .env files"
+ls -la "$APP_DIR"/.env* 2>/dev/null || true
+echo "[entrypoint] DEBUG: DATABASE_URL=$DATABASE_URL"
+
 # Warm up the cache before running contao:install
 if [[ -x "$CONTAO_CONSOLE" ]]; then
   echo "[entrypoint] Warming up cache"
-  php "$CONTAO_CONSOLE" cache:warmup --env=prod || true
+  php "$CONTAO_CONSOLE" cache:warmup --env=prod || echo "[entrypoint] WARNING: cache:warmup failed, continuing anyway"
 fi
 
 # Recalculate path after potential install
 if [[ -x "$CONTAO_CONSOLE" ]]; then
   echo "[entrypoint] Running initial Contao setup via contao:install"
-  php "$CONTAO_CONSOLE" contao:install
+  php "$CONTAO_CONSOLE" contao:install || echo "[entrypoint] WARNING: contao:install failed, continuing anyway"
 else
   echo "[entrypoint] Still no Contao console present – continuing without running contao:install"
 fi
