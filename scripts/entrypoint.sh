@@ -68,6 +68,12 @@ echo "[entrypoint] Fixing permissions on $APP_DIR"
 chown -R www-data:www-data "$APP_DIR"
 chmod -R 775 "$APP_DIR"
 
+# Clear cache to avoid stale container issues
+if [[ -d "$APP_DIR/var/cache" ]]; then
+  echo "[entrypoint] Clearing cache"
+  rm -rf "$APP_DIR/var/cache/"*
+fi
+
 # Recalculate path after potential install
 if [[ -x "$CONTAO_CONSOLE" ]]; then
   echo "[entrypoint] Running initial Contao setup via contao:install"
