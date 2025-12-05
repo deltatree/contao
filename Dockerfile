@@ -48,7 +48,7 @@ RUN set -eux; \
     mkdir -p /var/www/html/web; \
     echo "ServerName localhost" >> /etc/apache2/apache2.conf; \
     sed -ri 's!DocumentRoot /var/www/html!DocumentRoot /var/www/html/web!g' /etc/apache2/sites-available/000-default.conf; \
-    sed -ri 's!<Directory /var/www/>!<Directory /var/www/html/web/>!g' /etc/apache2/apache2.conf; \
+    sed -ri '/<Directory \/var\/www\/>/,/<\/Directory>/ s/AllowOverride None/AllowOverride All/' /etc/apache2/apache2.conf; \
     apt-get clean; \
     rm -rf /var/lib/apt/lists/*
 
