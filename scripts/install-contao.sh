@@ -14,4 +14,5 @@ if [[ -n $(ls -A /var/www/html 2>/dev/null) ]]; then
   exit 1
 fi
 
-exec composer create-project --no-audit --no-security-blocking "${project}:${version}" ./
+# Composer 2.2.x kompatibel (keine --no-audit oder --no-security-blocking Optionen)
+exec composer create-project "${project}:${version}" ./

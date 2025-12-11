@@ -4,8 +4,11 @@ set -e
 TARGET=4.9.18
 MANAGER_PLUGIN_VERSION=2.11.3
 
-# Security-Blocker für unsichere Versionen deaktivieren
-composer config audit.block-insecure false
+# Allow required Composer plugins for Contao
+composer config allow-plugins.contao-components/installer true --no-interaction
+composer config allow-plugins.contao-community-alliance/composer-plugin true --no-interaction
+composer config allow-plugins.php-http/discovery true --no-interaction
+composer config allow-plugins.contao/manager-plugin true --no-interaction
 
 # Alle Contao-Pakete aus composer.lock holen
 PKGS=$(composer show --locked 'contao/*' | awk '{print $1}')

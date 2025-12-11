@@ -37,6 +37,16 @@ if [[ ! -x "$CONTAO_CONSOLE" ]]; then
     echo "[entrypoint] No Contao installation detected – running install-contao"
     "$INSTALLER"
     
+    # Configure Composer plugins for Contao (required for Composer 2.2+)
+    echo "[entrypoint] Configuring Composer plugins"
+    (
+      cd "$APP_DIR"
+      composer config allow-plugins.contao-components/installer true --no-interaction
+      composer config allow-plugins.contao-community-alliance/composer-plugin true --no-interaction
+      composer config allow-plugins.php-http/discovery true --no-interaction
+      composer config allow-plugins.contao/manager-plugin true --no-interaction
+    )
+    
     # Add additional packages after initial installation
     echo "[entrypoint] Adding additional Contao packages"
     (
@@ -91,6 +101,13 @@ fi
 echo "[entrypoint] Running composer install"
 (
   cd "$APP_DIR"
+  # Ensure Composer plugins are allowed for Contao
+  if [[ -f "composer.json" ]]; then
+    composer config allow-plugins.contao-components/installer true --no-interaction 2>/dev/null || true
+    composer config allow-plugins.contao-community-alliance/composer-plugin true --no-interaction 2>/dev/null || true
+    composer config allow-plugins.php-http/discovery true --no-interaction 2>/dev/null || true
+    composer config allow-plugins.contao/manager-plugin true --no-interaction 2>/dev/null || true
+  fi
   composer install --no-dev --optimize-autoloader || echo "[entrypoint] WARNING: composer install failed"
 )
 
