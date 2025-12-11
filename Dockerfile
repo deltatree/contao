@@ -9,26 +9,32 @@ ENV APACHE_DOCUMENT_ROOT=/var/www/html/web \
     COMPOSER_MEMORY_LIMIT=-1
 
 # Install system libraries and PHP extensions required per Contao docs
+# Using retry logic to handle transient network errors during apt-get
 RUN set -eux; \
-    apt-get update; \
-    apt-get install -y --no-install-recommends \
-        git \
-        unzip \
-        libicu-dev \
-        libxml2-dev \
-        libcurl4-openssl-dev \
-        libpng-dev \
-        libjpeg62-turbo-dev \
-        libwebp-dev \
-        libfreetype6-dev \
-        libzip-dev \
-        zlib1g-dev \
-        libonig-dev \
-        libmagickwand-dev \
-        libsodium-dev \
-        libgmp-dev \
-        libxslt1-dev \
-        mariadb-client; \
+    for i in 1 2 3; do \
+        apt-get update && break || sleep 5; \
+    done; \
+    for i in 1 2 3; do \
+        apt-get install -y --no-install-recommends \
+            git \
+            unzip \
+            libicu-dev \
+            libxml2-dev \
+            libcurl4-openssl-dev \
+            libpng-dev \
+            libjpeg62-turbo-dev \
+            libwebp-dev \
+            libfreetype6-dev \
+            libzip-dev \
+            zlib1g-dev \
+            libonig-dev \
+            libmagickwand-dev \
+            libsodium-dev \
+            libgmp-dev \
+            libxslt1-dev \
+            mariadb-client \
+        && break || (apt-get update && sleep 5); \
+    done; \
     docker-php-ext-configure gd --with-jpeg --with-freetype --with-webp; \
     docker-php-ext-install -j"$(nproc)" \
         bcmath \
@@ -44,7 +50,7 @@ RUN set -eux; \
         zip; \
     pecl install imagick; \
     docker-php-ext-enable imagick; \
-    a2enmod rewrite headers; \
+    a2enmod rewrite headers deflate filter; \
     mkdir -p /var/www/html/web; \
     echo "ServerName localhost" >> /etc/apache2/apache2.conf; \
     sed -ri 's!DocumentRoot /var/www/html!DocumentRoot /var/www/html/web!g' /etc/apache2/sites-available/000-default.conf; \
