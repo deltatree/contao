@@ -5,6 +5,8 @@ LABEL org.opencontainers.image.source="https://contao.org" \
       org.opencontainers.image.description="Contao ready PHP + Apache image"
 
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/web \
+    APACHE_MAX_REQUEST_WORKERS=20 \
+    APACHE_MAX_CONNECTIONS_PER_CHILD=500 \
     COMPOSER_ALLOW_SUPERUSER=1 \
     COMPOSER_MEMORY_LIMIT=-1
 
@@ -64,6 +66,9 @@ COPY --from=composer:2.2.24 /usr/bin/composer /usr/local/bin/composer
 
 # Apply php.ini overrides
 COPY docker/php/php.ini /usr/local/etc/php/conf.d/contao.ini
+
+# Apache prefork begrenzen: höchstens so viele Prozesse, wie in die Speichergrenze passen
+COPY docker/apache/mpm_prefork.conf /etc/apache2/mods-available/mpm_prefork.conf
 
 # Contao helper scripts
 COPY scripts/install-contao.sh /usr/local/bin/install-contao

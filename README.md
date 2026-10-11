@@ -55,6 +55,7 @@ docker compose exec db mariadb -u contao -pcontao contao
 
 - Tune PHP directives in `docker/php/php.ini` (memory limit, upload sizes, opcache, etc.). Containers reload these settings on start.
 - Additional Apache modules or vhost tweaks can be added in the `Dockerfile` if required.
+- Apache prefork is capped in `docker/apache/mpm_prefork.conf`. `APACHE_MAX_REQUEST_WORKERS` (default 20) sets the number of worker processes; rule of thumb: about 35 MB per worker plus 192 MB OPcache, so 20 workers fit a 1 GiB memory limit. `APACHE_MAX_CONNECTIONS_PER_CHILD` (default 500) recycles a worker after that many connections. Requests above the cap wait in the listen queue instead of starting more processes.
 
 ## File Persistence
 
