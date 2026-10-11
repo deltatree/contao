@@ -51,6 +51,11 @@ To obtain a SQL shell:
 docker compose exec db mariadb -u contao -pcontao contao
 ```
 
+## Build layout (since 2026-10-11)
+
+- `Dockerfile` layers small changes on top of the published image of 2025-12-11, pinned by digest. The publish workflow builds this file.
+- `Dockerfile.grundbau` is the full build from `php:7.4-apache`. It no longer builds: Debian 11 package sources answer 404. Known defect; repair it or move to a supported base before the next larger change.
+
 ## Customizing PHP & Apache
 
 - Tune PHP directives in `docker/php/php.ini` (memory limit, upload sizes, opcache, etc.). Containers reload these settings on start.
