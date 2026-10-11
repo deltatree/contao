@@ -51,10 +51,16 @@ To obtain a SQL shell:
 docker compose exec db mariadb -u contao -pcontao contao
 ```
 
+## Build layout (since 2026-10-11)
+
+- `Dockerfile` layers small changes on top of the published image of 2025-12-11, pinned by digest. The publish workflow builds this file.
+- `Dockerfile.grundbau` is the full build from `php:7.4-apache`. It no longer builds: Debian 11 package sources answer 404. Known defect; repair it or move to a supported base before the next larger change.
+
 ## Customizing PHP & Apache
 
 - Tune PHP directives in `docker/php/php.ini` (memory limit, upload sizes, opcache, etc.). Containers reload these settings on start.
 - Additional Apache modules or vhost tweaks can be added in the `Dockerfile` if required.
+- Apache prefork is capped in `docker/apache/mpm_prefork.conf`. `APACHE_MAX_REQUEST_WORKERS` (default 20) sets the number of worker processes; rule of thumb: about 35 MB per worker plus 192 MB OPcache, so 20 workers fit a 1 GiB memory limit. `APACHE_MAX_CONNECTIONS_PER_CHILD` (default 500) recycles a worker after that many connections. Requests above the cap wait in the listen queue instead of starting more processes.
 
 ## File Persistence
 
